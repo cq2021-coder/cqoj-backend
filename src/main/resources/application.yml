@@ -10,7 +10,7 @@ spring:
   application:
     name: cqoj-backend
   profiles:
-    active: dev
+    active: prod
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
