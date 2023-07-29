@@ -4,17 +4,18 @@ server:
     context-path: /api
     session:
       cookie:
-        # cookie 30 天
+        # cookie 30 天后过期
         max-age: 2592000
 spring:
   application:
     name: cqoj-backend
   profiles:
-    active: prod
+    # 选择配置文件
+    active: dev
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
-  # session 天
+  # session 天过期
   session:
     store-type: redis
     timeout: 2592000
