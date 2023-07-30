@@ -12,7 +12,6 @@ import com.cq.cqoj.model.enums.UserRoleEnum;
 import com.cq.cqoj.model.vo.LoginUserVO;
 import com.cq.cqoj.model.vo.UserVO;
 import com.cq.cqoj.service.UserService;
-import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -31,7 +30,6 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/user")
-@Api(tags = "用户接口")
 @Slf4j
 public class UserController {
 
