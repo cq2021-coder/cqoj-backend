@@ -2,6 +2,7 @@ package com.cq.cqoj.model.dto.user;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 /**
@@ -16,6 +17,7 @@ public class UserUpdateMyRequest implements Serializable {
     /**
      * 用户昵称
      */
+    @NotBlank(message = "昵称不能为空")
     private String userName;
 
     /**

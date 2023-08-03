@@ -13,3 +13,10 @@ spring:
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+aliyun:
+  oss:
+    access-key: XXX
+    key-secret: XXX
+    bucket-name: XXX
+    endpoint: XXX

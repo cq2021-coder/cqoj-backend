@@ -11,6 +11,7 @@ import com.cq.cqoj.model.dto.user.UserQueryRequest;
 import com.cq.cqoj.model.entity.User;
 import com.cq.cqoj.model.vo.LoginUserVO;
 import com.cq.cqoj.model.vo.UserVO;
+import com.cq.cqoj.service.FileService;
 import com.cq.cqoj.service.UserService;
 import com.cq.cqoj.utils.CopyUtil;
 import com.cq.cqoj.utils.SqlUtils;
@@ -19,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import java.util.List;
 
@@ -39,6 +41,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * 盐值，混淆密码
      */
     private static final String SALT = "cq2023-cqoj";
+
+    @Resource
+    private FileService fileService;
 
 
     /**
@@ -61,6 +66,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (currentUser == null) {
             throw new BusinessException(ResultCodeEnum.NOT_LOGIN_ERROR);
         }
+        setUserTempAccessAvatar(currentUser);
         return currentUser;
     }
 
@@ -127,7 +133,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (user == null) {
             return null;
         }
-        return CopyUtil.copy(user, LoginUserVO.class);
+        LoginUserVO userVO = CopyUtil.copy(user, LoginUserVO.class);
+        userVO.setUserRoleName(userVO.getUserRole().getText());
+        return userVO;
     }
 
     @Override
@@ -135,7 +143,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (user == null) {
             return null;
         }
-        return CopyUtil.copy(user, UserVO.class);
+        UserVO userVO = CopyUtil.copy(user, UserVO.class);
+        userVO.setUserRoleName(userVO.getUserRole().getText());
+        return userVO;
     }
 
     @Override
@@ -167,6 +177,13 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         return queryWrapper;
     }
 
+
+    private void setUserTempAccessAvatar(User currentUser) {
+        String userAvatar = currentUser.getUserAvatar();
+        if (StringUtils.isNotBlank(userAvatar)) {
+            currentUser.setUserAvatar(fileService.getTmpAccess(userAvatar));
+        }
+    }
 }
 
 

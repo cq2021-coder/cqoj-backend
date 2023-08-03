@@ -41,6 +41,11 @@ public class LoginUserVO implements Serializable {
     private UserRoleEnum userRole;
 
     /**
+     * 用户角色名称
+     */
+    private String userRoleName;
+
+    /**
      * 创建时间
      */
     private Date createTime;

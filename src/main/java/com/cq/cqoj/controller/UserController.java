@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -274,8 +275,7 @@ public class UserController {
      * @return {@link CommonResponse}<{@link Boolean}>
      */
     @PostMapping("/update/my")
-    public CommonResponse<Boolean> updateMyUser(@RequestBody UserUpdateMyRequest userUpdateMyRequest,
-            HttpSession session) {
+    public CommonResponse<Boolean> updateMyUser(@RequestBody @Valid UserUpdateMyRequest userUpdateMyRequest, HttpSession session) {
         if (userUpdateMyRequest == null) {
             throw new BusinessException(ResultCodeEnum.PARAMS_ERROR);
         }
