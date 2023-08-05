@@ -17,10 +17,10 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "aliyun.oss")
 @Data
 public class OssConfig {
-    private String endpoint = "oss-cn-beijing.aliyuncs.com";
-    private String accessKey = "LTAI5tSqHcpy8kVm7W3KSYJ5";
-    private String keySecret = "dTJcMVGfYxdDy2x6knAXUwMvYgNc04";
-    private String bucketName = "cq-cqyx";
+    private String endpoint;
+    private String accessKey;
+    private String keySecret;
+    private String bucketName;
 
     @Bean
     public OSS ossClient() {
