@@ -65,7 +65,7 @@ public class FileServiceImpl implements FileService {
             return "";
         }
         if (key.startsWith("http")) {
-            return "";
+            return key;
         }
         String bucketName = ossConfig.getBucketName();
         return ossClient.generatePresignedUrl(bucketName, key, new Date(System.currentTimeMillis() + 60 * 1000)).toString();
