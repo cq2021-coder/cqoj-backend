@@ -124,7 +124,7 @@ public class QuestionController {
     }
 
     /**
-     * 根据 id 获取
+     * 根据 id 获取(脱敏)
      *
      * @param id id
      * @return {@link CommonResponse}<{@link QuestionVO}>
@@ -139,6 +139,28 @@ public class QuestionController {
             throw new BusinessException(ResultCodeEnum.NOT_FOUND_ERROR);
         }
         return CommonResponse.success(questionService.getQuestionVO(question));
+    }
+
+    /**
+     * 根据 id 获取
+     *
+     * @param id id
+     * @return {@link CommonResponse}<{@link QuestionVO}>
+     */
+    @GetMapping("/get")
+    public CommonResponse<Question> getQuestionById(long id, HttpSession session) {
+        if (id <= 0) {
+            throw new BusinessException(ResultCodeEnum.PARAMS_ERROR);
+        }
+        Question question = questionService.getById(id);
+        if (question == null) {
+            throw new BusinessException(ResultCodeEnum.NOT_FOUND_ERROR);
+        }
+        User loginUser = userService.getLoginUser(session);
+        if (!question.getUserId().equals(loginUser.getId()) && !userService.isAdmin(loginUser)) {
+            throw new BusinessException(ResultCodeEnum.NO_AUTH_ERROR);
+        }
+        return CommonResponse.success(question);
     }
 
     /**
