@@ -9,7 +9,9 @@ import com.cq.cqoj.exception.BusinessException;
 import com.cq.cqoj.model.dto.question.*;
 import com.cq.cqoj.model.entity.Question;
 import com.cq.cqoj.model.entity.User;
+import com.cq.cqoj.model.enums.QuestionSubmitLanguageEnum;
 import com.cq.cqoj.model.enums.UserRoleEnum;
+import com.cq.cqoj.model.vo.QuestionManageVO;
 import com.cq.cqoj.model.vo.QuestionVO;
 import com.cq.cqoj.service.QuestionService;
 import com.cq.cqoj.service.UserService;
@@ -208,12 +210,12 @@ public class QuestionController {
      */
     @PostMapping("/list/page")
     @AuthCheck(UserRoleEnum.ADMIN)
-    public CommonResponse<Page<Question>> listQuestionByPage(@RequestBody QuestionQueryRequest questionQueryRequest) {
+    public CommonResponse<Page<QuestionManageVO>> listManageQuestionByPage(@RequestBody QuestionQueryRequest questionQueryRequest) {
         long current = questionQueryRequest.getCurrent();
         long size = questionQueryRequest.getPageSize();
-        Page<Question> questionPage = questionService.page(new Page<>(current, size),
-                questionService.getQueryWrapper(questionQueryRequest));
-        return CommonResponse.success(questionPage);
+        return CommonResponse.success(
+                questionService.listManageQuestionByPage(new Page<>(current, size), questionService.getQueryWrapper(questionQueryRequest))
+        );
     }
 
     // endregion
@@ -248,7 +250,6 @@ public class QuestionController {
     }
 
 
-
     private void setQuestionValue(QuestionBaseRequest questionBaseRequest, Question question, boolean add) {
         List<String> tags = questionBaseRequest.getTags();
         if (tags != null) {
@@ -263,6 +264,11 @@ public class QuestionController {
             question.setJudgeConfig(GSON.toJson(judgeConfig));
         }
         questionService.validQuestion(question, add);
+    }
+
+    @GetMapping("/get/language")
+    public CommonResponse<List<String>> getCodeLanguage() {
+        return CommonResponse.success(QuestionSubmitLanguageEnum.getValues());
     }
 
 }

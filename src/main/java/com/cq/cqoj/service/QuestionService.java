@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.cq.cqoj.model.dto.question.QuestionQueryRequest;
 import com.cq.cqoj.model.entity.Question;
+import com.cq.cqoj.model.vo.QuestionManageVO;
 import com.cq.cqoj.model.vo.QuestionVO;
 
 /**
@@ -45,4 +46,12 @@ public interface QuestionService extends IService<Question> {
      */
     Page<QuestionVO> getQuestionVoPage(Page<Question> questionPage);
 
+    /**
+     * 管理题目列表页面
+     *
+     * @param questionPage   题目分页
+     * @param queryWrapper 查询条件
+     * @return {@link Page}<{@link QuestionManageVO}>
+     */
+    Page<QuestionManageVO> listManageQuestionByPage(Page<Question> questionPage, QueryWrapper<Question> queryWrapper);
 }
