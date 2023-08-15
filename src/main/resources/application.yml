@@ -36,3 +36,6 @@ mybatis-plus:
       logic-not-delete-value: 0
       id-type: assign_id
     banner: off
+# 代码沙箱配置
+codesandbox:
+  type: example

@@ -6,6 +6,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.cq.cqoj.common.ResultCodeEnum;
 import com.cq.cqoj.constants.CommonConstant;
 import com.cq.cqoj.exception.BusinessException;
+import com.cq.cqoj.judge.JudgeService;
 import com.cq.cqoj.mapper.QuestionSubmitMapper;
 import com.cq.cqoj.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.cq.cqoj.model.dto.questionsubmit.QuestionSubmitQueryRequest;
@@ -23,10 +24,12 @@ import com.google.common.base.CaseFormat;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -43,6 +46,9 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
     @Resource
     private UserService userService;
 
+    @Resource
+    private JudgeService judgeService;
+
     /**
      * 提交题目
      *
@@ -51,6 +57,7 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
      * @return long
      */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public long doQuestionSubmit(QuestionSubmitAddRequest questionSubmitAddRequest, User loginUser) {
         // 校验编程语言是否合法
         String language = questionSubmitAddRequest.getLanguage();
@@ -79,6 +86,7 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
         if (!save) {
             throw new BusinessException(ResultCodeEnum.SYSTEM_ERROR, "数据插入失败");
         }
+        CompletableFuture.runAsync(() -> judgeService.doJudge(questionSubmit));
         return questionSubmit.getId();
     }
 
