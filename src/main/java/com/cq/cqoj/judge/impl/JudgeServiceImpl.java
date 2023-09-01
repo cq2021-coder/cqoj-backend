@@ -94,6 +94,7 @@ public class JudgeServiceImpl implements JudgeService {
         judgeContext.setOutputList(outputList);
         judgeContext.setOutputListResult(outputListResult);
         judgeContext.setQuestion(question);
+        judgeContext.setLanguageType(QuestionSubmitLanguageEnum.getEnumByValue(questionSubmit.getLanguage()));
 
         JudgeInfo judgeInfo = judgeManager.doJudge(judgeContext);
         questionSubmitUpdate.setStatus(QuestionSubmitStatusEnum.SUCCEED.getValue());

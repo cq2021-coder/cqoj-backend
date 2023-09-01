@@ -1,5 +1,7 @@
 package com.cq.cqoj.judge.codesandbox.impl;
 
+import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONUtil;
 import com.cq.cqoj.judge.codesandbox.CodeSandbox;
 import com.cq.cqoj.judge.model.ExecuteCodeRequest;
 import com.cq.cqoj.judge.model.ExecuteCodeResponse;
@@ -13,9 +15,13 @@ import lombok.extern.slf4j.Slf4j;
  */
 @Slf4j
 public class RemoteCodeSandbox implements CodeSandbox {
+
+    private static final String URL = "http://localhost:3040/codesandbox/execute";
+
+
     @Override
     public ExecuteCodeResponse executeCode(ExecuteCodeRequest executeCodeRequest) {
-        log.info("远程代码沙箱");
-        return null;
+        String responseStr = HttpUtil.post(URL, JSONUtil.toJsonStr(executeCodeRequest));
+        return JSONUtil.toBean(responseStr, ExecuteCodeResponse.class);
     }
 }

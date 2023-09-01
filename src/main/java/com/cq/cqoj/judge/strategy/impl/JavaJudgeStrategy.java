@@ -1,5 +1,6 @@
 package com.cq.cqoj.judge.strategy.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import com.cq.cqoj.judge.strategy.JudgeContext;
 import com.cq.cqoj.judge.strategy.JudgeStrategy;
@@ -13,6 +14,7 @@ import java.util.List;
 
 public class JavaJudgeStrategy implements JudgeStrategy {
     private static final int JAVA_EXTRA_TIME = 10;
+
     @Override
     public JudgeInfo doJudge(JudgeContext judgeContext) {
         JudgeInfo judgeInfo = judgeContext.getJudgeInfo();
@@ -24,8 +26,8 @@ public class JavaJudgeStrategy implements JudgeStrategy {
 
         JudgeInfoMessageEnum judgeInfoMessage;
 
-        Long memory = judgeInfo.getMemory();
-        Long time = judgeInfo.getTime();
+        Long memory = ObjectUtil.defaultIfNull(judgeInfo.getMemory(), 0L);
+        Long time = ObjectUtil.defaultIfNull(judgeInfo.getTime(), 0L);
 
         JudgeInfo judgeInfoResponse = new JudgeInfo();
         judgeInfoResponse.setMemory(memory);

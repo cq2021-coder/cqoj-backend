@@ -20,10 +20,7 @@ public enum QuestionSubmitLanguageEnum {
      * 语言类型
      */
     JAVA("java", "java"),
-    CPLUSPLUS("cpp", "cpp"),
-    PYTHON("python", "python"),
-    C("c", "c"),
-    GOLANG("go", "go");
+    CPP("cpp", "cpp");
 
     private final String text;
 
