@@ -31,4 +31,5 @@ build/
 
 ### VS Code ###
 .vscode/
+/src/main/resources/application-test.yml
 /src/main/resources/application-prod.yml

@@ -3,6 +3,7 @@ package com.cq.cqoj.exception;
 import com.cq.cqoj.common.CommonResponse;
 import com.cq.cqoj.common.ResultCodeEnum;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.BindException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
@@ -24,6 +25,14 @@ public class GlobalExceptionHandler {
         }
         return CommonResponse.error(e.getResultCodeEnum());
     }
+
+    @ExceptionHandler(value = BindException.class)
+    public CommonResponse<Object> validExceptionHandler(BindException e) {
+        String errorMessage = e.getBindingResult().getAllErrors().get(0).getDefaultMessage();
+        log.warn("parameter validation failed:{}", errorMessage);
+        return CommonResponse.error(ResultCodeEnum.PARAMS_ERROR, errorMessage);
+    }
+
 
     @ExceptionHandler(RuntimeException.class)
     public CommonResponse<?> runtimeExceptionHandler(RuntimeException e) {
