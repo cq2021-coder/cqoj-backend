@@ -12,7 +12,6 @@ import com.cq.cqoj.model.enums.UserRoleEnum;
 import com.cq.cqoj.model.vo.LoginUserVO;
 import com.cq.cqoj.model.vo.UserVO;
 import com.cq.cqoj.service.UserService;
-import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -21,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
+import javax.validation.Valid;
 import java.util.List;
 
 /**
@@ -31,7 +31,6 @@ import java.util.List;
  */
 @RestController
 @RequestMapping("/user")
-@Api(tags = "用户接口")
 @Slf4j
 public class UserController {
 
@@ -276,8 +275,7 @@ public class UserController {
      * @return {@link CommonResponse}<{@link Boolean}>
      */
     @PostMapping("/update/my")
-    public CommonResponse<Boolean> updateMyUser(@RequestBody UserUpdateMyRequest userUpdateMyRequest,
-            HttpSession session) {
+    public CommonResponse<Boolean> updateMyUser(@RequestBody @Valid UserUpdateMyRequest userUpdateMyRequest, HttpSession session) {
         if (userUpdateMyRequest == null) {
             throw new BusinessException(ResultCodeEnum.PARAMS_ERROR);
         }

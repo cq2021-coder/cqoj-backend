@@ -9,16 +9,20 @@ import com.cq.cqoj.exception.BusinessException;
 import com.cq.cqoj.mapper.UserMapper;
 import com.cq.cqoj.model.dto.user.UserQueryRequest;
 import com.cq.cqoj.model.entity.User;
+import com.cq.cqoj.model.enums.UserRoleEnum;
 import com.cq.cqoj.model.vo.LoginUserVO;
 import com.cq.cqoj.model.vo.UserVO;
+import com.cq.cqoj.service.FileService;
 import com.cq.cqoj.service.UserService;
 import com.cq.cqoj.utils.CopyUtil;
 import com.cq.cqoj.utils.SqlUtils;
+import com.google.common.base.CaseFormat;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpSession;
 import java.util.List;
 
@@ -39,6 +43,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
      * 盐值，混淆密码
      */
     private static final String SALT = "cq2023-cqoj";
+
+    @Resource
+    private FileService fileService;
 
 
     /**
@@ -61,6 +68,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (currentUser == null) {
             throw new BusinessException(ResultCodeEnum.NOT_LOGIN_ERROR);
         }
+        setUserTempAccessAvatar(currentUser);
         return currentUser;
     }
 
@@ -127,7 +135,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (user == null) {
             return null;
         }
-        return CopyUtil.copy(user, LoginUserVO.class);
+        LoginUserVO userVO = CopyUtil.copy(user, LoginUserVO.class);
+        userVO.setUserRoleName(userVO.getUserRole().getText());
+        return userVO;
     }
 
     @Override
@@ -135,7 +145,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (user == null) {
             return null;
         }
-        return CopyUtil.copy(user, UserVO.class);
+        UserVO userVO = CopyUtil.copy(user, UserVO.class);
+        userVO.setUserRoleName(userVO.getUserRole().getText());
+        return userVO;
     }
 
     @Override
@@ -158,15 +170,49 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         String sortOrder = userQueryRequest.getSortOrder();
         QueryWrapper<User> queryWrapper = new QueryWrapper<>();
         queryWrapper.eq(id != null, "id", id);
-        queryWrapper.eq(StringUtils.isNotBlank(unionId), "unionId", unionId);
-        queryWrapper.eq(StringUtils.isNotBlank(mpOpenId), "mpOpenId", mpOpenId);
-        queryWrapper.eq(StringUtils.isNotBlank(userRole), "userRole", userRole);
-        queryWrapper.like(StringUtils.isNotBlank(userProfile), "userProfile", userProfile);
-        queryWrapper.like(StringUtils.isNotBlank(userName), "userName", userName);
-        queryWrapper.orderBy(SqlUtils.validSortField(sortField), sortOrder.equals(CommonConstant.SORT_ORDER_ASC), sortField);
+        queryWrapper.eq(StringUtils.isNotBlank(unionId), "union_id", unionId);
+        queryWrapper.eq(StringUtils.isNotBlank(mpOpenId), "mp_open_id", mpOpenId);
+        queryWrapper.eq(StringUtils.isNotBlank(userRole), "user_role", userRole);
+        queryWrapper.like(StringUtils.isNotBlank(userProfile), "user_profile", userProfile);
+        queryWrapper.like(StringUtils.isNotBlank(userName), "user_name", userName);
+        boolean isSort = SqlUtils.validSortField(sortField);
+        if (isSort) {
+            sortField = CaseFormat.LOWER_CAMEL.to(CaseFormat.LOWER_UNDERSCORE, sortField);
+        }
+        queryWrapper.orderBy(
+                isSort,
+                sortOrder.equals(CommonConstant.SORT_ORDER_ASC),
+                sortField
+        );
         return queryWrapper;
     }
 
+    /**
+     * 是否为管理员
+     *
+     * @param session 会话
+     * @return boolean
+     */
+    @Override
+    public boolean isAdmin(HttpSession session) {
+        // 仅管理员可查询
+        Object userObj = session.getAttribute(USER_LOGIN_STATE);
+        User user = (User) userObj;
+        return isAdmin(user);
+    }
+
+    @Override
+    public boolean isAdmin(User user) {
+        return user != null && UserRoleEnum.ADMIN.equals(user.getUserRole());
+    }
+
+
+    private void setUserTempAccessAvatar(User currentUser) {
+        String userAvatar = currentUser.getUserAvatar();
+        if (StringUtils.isNotBlank(userAvatar)) {
+            currentUser.setUserAvatar(fileService.getTmpAccess(userAvatar));
+        }
+    }
 }
 
 
