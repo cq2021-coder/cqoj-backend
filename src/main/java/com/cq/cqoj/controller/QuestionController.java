@@ -7,13 +7,18 @@ import com.cq.cqoj.common.DeleteRequest;
 import com.cq.cqoj.common.ResultCodeEnum;
 import com.cq.cqoj.exception.BusinessException;
 import com.cq.cqoj.model.dto.question.*;
+import com.cq.cqoj.model.dto.questionsubmit.QuestionSubmitAddRequest;
+import com.cq.cqoj.model.dto.questionsubmit.QuestionSubmitQueryRequest;
 import com.cq.cqoj.model.entity.Question;
+import com.cq.cqoj.model.entity.QuestionSubmit;
 import com.cq.cqoj.model.entity.User;
 import com.cq.cqoj.model.enums.QuestionSubmitLanguageEnum;
 import com.cq.cqoj.model.enums.UserRoleEnum;
 import com.cq.cqoj.model.vo.QuestionManageVO;
+import com.cq.cqoj.model.vo.QuestionSubmitVO;
 import com.cq.cqoj.model.vo.QuestionVO;
 import com.cq.cqoj.service.QuestionService;
+import com.cq.cqoj.service.QuestionSubmitService;
 import com.cq.cqoj.service.UserService;
 import com.google.gson.Gson;
 import io.swagger.annotations.Api;
@@ -42,6 +47,9 @@ public class QuestionController {
 
     @Resource
     private UserService userService;
+
+    @Resource
+    private QuestionSubmitService questionSubmitService;
 
     private final static Gson GSON = new Gson();
 
@@ -269,6 +277,43 @@ public class QuestionController {
     @GetMapping("/get/language")
     public CommonResponse<List<String>> getCodeLanguage() {
         return CommonResponse.success(QuestionSubmitLanguageEnum.getValues());
+    }
+
+
+    /**
+     * 提交题目
+     *
+     * @param questionSubmitAddRequest 题目提交添加请求
+     * @param session                  会话
+     * @return 提交记录的 id
+     */
+    @PostMapping("/question-submit/do")
+    public CommonResponse<Long> doQuestionSubmit(@RequestBody QuestionSubmitAddRequest questionSubmitAddRequest, HttpSession session) {
+        if (questionSubmitAddRequest == null || questionSubmitAddRequest.getQuestionId() <= 0) {
+            throw new BusinessException(ResultCodeEnum.PARAMS_ERROR);
+        }
+        final User loginUser = userService.getLoginUser(session);
+        long questionSubmitId = questionSubmitService.doQuestionSubmit(questionSubmitAddRequest, loginUser);
+        return CommonResponse.success(questionSubmitId);
+    }
+
+    /**
+     * 分页获取题目提交列表（除了管理员外，普通用户只能看到非答案、提交代码等公开信息）
+     *
+     * @param questionSubmitQueryRequest 题目提交查询请求
+     * @param session                    会话
+     * @return {@link CommonResponse}<{@link Page}<{@link QuestionSubmitVO}>>
+     */
+    @PostMapping("/question-submit/list/page")
+    public CommonResponse<Page<QuestionSubmitVO>> listQuestionSubmitByPage(@RequestBody QuestionSubmitQueryRequest questionSubmitQueryRequest, HttpSession session) {
+        long current = questionSubmitQueryRequest.getCurrent();
+        long size = questionSubmitQueryRequest.getPageSize();
+        // 从数据库中查询原始的题目提交分页信息
+        Page<QuestionSubmit> questionSubmitPage = questionSubmitService.page(new Page<>(current, size),
+                questionSubmitService.getQueryWrapper(questionSubmitQueryRequest));
+        final User loginUser = userService.getLoginUser(session);
+        // 返回脱敏信息
+        return CommonResponse.success(questionSubmitService.getQuestionSubmitVoPage(questionSubmitPage, loginUser));
     }
 
 }

@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class RemoteCodeSandbox implements CodeSandbox {
 
-    private static final String URL = "http://localhost:3040/codesandbox/execute";
+    private static final String URL = "http://120.48.83.118:3040/codesandbox/execute";
 
 
     @Override
