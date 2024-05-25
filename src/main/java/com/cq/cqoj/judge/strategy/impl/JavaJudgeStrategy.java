@@ -9,6 +9,7 @@ import com.cq.cqoj.model.dto.questionsubmit.JudgeInfo;
 import com.cq.cqoj.model.entity.Question;
 import com.cq.cqoj.model.enums.JudgeInfoMessageEnum;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -17,10 +18,10 @@ public class JavaJudgeStrategy implements JudgeStrategy {
 
     @Override
     public JudgeInfo doJudge(JudgeContext judgeContext) {
-        JudgeInfo judgeInfo = judgeContext.getJudgeInfo();
+        JudgeInfo judgeInfo = ObjectUtil.defaultIfNull(judgeContext.getJudgeInfo(),new JudgeInfo());
 
-        List<String> outputList = judgeContext.getOutputList();
-        List<String> outputListResult = judgeContext.getOutputListResult();
+        List<String> outputList = ObjectUtil.defaultIfNull(judgeContext.getOutputList(),new ArrayList<>());
+        List<String> outputListResult = ObjectUtil.defaultIfNull(judgeContext.getOutputListResult(),new ArrayList<>());
 
         Question question = judgeContext.getQuestion();
 
@@ -51,11 +52,14 @@ public class JavaJudgeStrategy implements JudgeStrategy {
         JudgeConfig judgeConfigResult = JSONUtil.toBean(question.getJudgeConfig(), JudgeConfig.class);
         Long timeLimit = judgeConfigResult.getTimeLimit();
         Long memoryLimit = judgeConfigResult.getMemoryLimit();
+        // 内存超限判断
         if (memory > memoryLimit) {
             judgeInfoMessage = JudgeInfoMessageEnum.MEMORY_LIMIT_EXCEEDED;
             judgeInfoResponse.setMessage(judgeInfoMessage.getText());
             return judgeInfoResponse;
         }
+
+        // 时间超限判断
         if (time > timeLimit + JAVA_EXTRA_TIME) {
             judgeInfoMessage = JudgeInfoMessageEnum.TIME_LIMIT_EXCEEDED;
             judgeInfoResponse.setMessage(judgeInfoMessage.getText());
