@@ -1,5 +1,7 @@
 package com.cq.cqoj.controller;
 
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.cq.cqoj.annotation.AuthCheck;
 import com.cq.cqoj.common.CommonResponse;
@@ -7,19 +9,20 @@ import com.cq.cqoj.common.DeleteRequest;
 import com.cq.cqoj.common.ResultCodeEnum;
 import com.cq.cqoj.exception.BusinessException;
 import com.cq.cqoj.model.dto.question.*;
+import com.cq.cqoj.model.dto.questionsubmit.JudgeInfo;
 import com.cq.cqoj.model.dto.questionsubmit.QuestionSubmitAddRequest;
-import com.cq.cqoj.model.dto.questionsubmit.QuestionSubmitQueryRequest;
+import com.cq.cqoj.model.dto.questionsubmit.QuestionSubmitQueryPageRequest;
 import com.cq.cqoj.model.entity.Question;
 import com.cq.cqoj.model.entity.QuestionSubmit;
 import com.cq.cqoj.model.entity.User;
 import com.cq.cqoj.model.enums.QuestionSubmitLanguageEnum;
+import com.cq.cqoj.model.enums.QuestionSubmitStatusEnum;
 import com.cq.cqoj.model.enums.UserRoleEnum;
-import com.cq.cqoj.model.vo.QuestionManageVO;
-import com.cq.cqoj.model.vo.QuestionSubmitVO;
-import com.cq.cqoj.model.vo.QuestionVO;
+import com.cq.cqoj.model.vo.*;
 import com.cq.cqoj.service.QuestionService;
 import com.cq.cqoj.service.QuestionSubmitService;
 import com.cq.cqoj.service.UserService;
+import com.cq.cqoj.utils.CopyUtil;
 import com.google.gson.Gson;
 import io.swagger.annotations.Api;
 import lombok.extern.slf4j.Slf4j;
@@ -301,10 +304,9 @@ public class QuestionController {
      * 分页获取题目提交列表（除了管理员外，普通用户只能看到非答案、提交代码等公开信息）
      *
      * @param questionSubmitQueryRequest 题目提交查询请求
-     * @param session                    会话
      * @return {@link CommonResponse}<{@link Page}<{@link QuestionSubmitVO}>>
      */
-    @PostMapping("/question-submit/list/page")
+    /*@PostMapping("/question-submit/list/page")
     public CommonResponse<Page<QuestionSubmitVO>> listQuestionSubmitByPage(@RequestBody QuestionSubmitQueryRequest questionSubmitQueryRequest, HttpSession session) {
         long current = questionSubmitQueryRequest.getCurrent();
         long size = questionSubmitQueryRequest.getPageSize();
@@ -314,6 +316,31 @@ public class QuestionController {
         final User loginUser = userService.getLoginUser(session);
         // 返回脱敏信息
         return CommonResponse.success(questionSubmitService.getQuestionSubmitVoPage(questionSubmitPage, loginUser));
+    }*/
+    @GetMapping("/question-submit/list/page")
+    public CommonResponse<Page<QuestionSubmitViewVO>> listQuestionSubmitByPage(QuestionSubmitQueryPageRequest questionSubmitQueryRequest, HttpSession session) {
+        User loginUser = userService.getLoginUser(session);
+        long size = questionSubmitQueryRequest.getPageSize();
+        long pageIndex = (questionSubmitQueryRequest.getCurrent() - 1) * size;
+        String title = questionSubmitQueryRequest.getTitle();
+        String language = questionSubmitQueryRequest.getLanguage();
+        return CommonResponse.success(questionSubmitService.listQuestionSubmitByPage(title, language, pageIndex, size, loginUser));
+    }
+    @GetMapping("/question-submit/get/id")
+    public CommonResponse<JudgeVO> getJudgeResult(Long questionSubmitId) {
+        QuestionSubmit questionSubmit = questionSubmitService.getById(questionSubmitId);
+        if (ObjectUtil.isEmpty(questionSubmit)) {
+            return CommonResponse.success(new JudgeVO(), "数据为空");
+        }
+        Integer status = questionSubmit.getStatus();
+        if (QuestionSubmitStatusEnum.WAITING.getValue().equals(status) || QuestionSubmitStatusEnum.RUNNING.getValue().equals(status)) {
+            throw new BusinessException(ResultCodeEnum.NOT_FOUND_ERROR, "判题中");
+        }
+        JudgeVO judgeVO = CopyUtil.copy(questionSubmit, JudgeVO.class);
+        JudgeInfo judgeInfo = JSONUtil.toBean(questionSubmit.getJudgeInfo(), JudgeInfo.class);
+        judgeVO.setTime(ObjectUtil.defaultIfNull(judgeInfo.getTime(), 0) + "ms");
+        judgeVO.setMessage(judgeInfo.getMessage());
+        return CommonResponse.success(judgeVO);
     }
 
 }

@@ -20,7 +20,7 @@ import javax.annotation.Resource;
  */
 @RestController
 @Api(tags = "file")
-@RequestMapping("/file")
+@RequestMapping("/user/file")
 public class FileController {
 
     @Resource
