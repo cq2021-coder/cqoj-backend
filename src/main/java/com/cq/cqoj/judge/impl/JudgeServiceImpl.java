@@ -1,5 +1,6 @@
 package com.cq.cqoj.judge.impl;
 
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.cq.cqoj.common.ResultCodeEnum;
@@ -17,6 +18,7 @@ import com.cq.cqoj.model.dto.question.JudgeCase;
 import com.cq.cqoj.model.dto.questionsubmit.JudgeInfo;
 import com.cq.cqoj.model.entity.Question;
 import com.cq.cqoj.model.entity.QuestionSubmit;
+import com.cq.cqoj.model.enums.JudgeInfoMessageEnum;
 import com.cq.cqoj.model.enums.QuestionSubmitLanguageEnum;
 import com.cq.cqoj.model.enums.QuestionSubmitStatusEnum;
 import com.cq.cqoj.service.QuestionService;
@@ -57,7 +59,10 @@ public class JudgeServiceImpl implements JudgeService {
         }
         Long questionId = questionSubmit.getQuestionId();
         Question question = questionService.getOne(
-                Wrappers.lambdaQuery(Question.class).eq(Question::getId, questionId).select(Question::getJudgeCase, Question::getJudgeConfig)
+                Wrappers.lambdaQuery(Question.class)
+                        .eq(Question::getId, questionId)
+                        .select(Question::getId, Question::getJudgeCase, Question::getJudgeConfig,
+                                Question::getAcceptedNum, Question::getSubmitNum)
         );
         if (ObjectUtils.isEmpty(question)) {
             throw new BusinessException(ResultCodeEnum.NOT_FOUND_ERROR, "题目不存在");
@@ -97,6 +102,15 @@ public class JudgeServiceImpl implements JudgeService {
         judgeContext.setLanguageType(QuestionSubmitLanguageEnum.getEnumByValue(questionSubmit.getLanguage()));
 
         JudgeInfo judgeInfo = judgeManager.doJudge(judgeContext);
+        if (JudgeInfoMessageEnum.ACCEPTED.getText().equals(judgeInfo.getMessage())) {
+            questionSubmitUpdate.setStatus(QuestionSubmitStatusEnum.SUCCEED.getValue());
+            question.setAcceptedNum(ObjectUtil.defaultIfNull(question.getAcceptedNum(), 0) + 1);
+        } else {
+            questionSubmitUpdate.setStatus(QuestionSubmitStatusEnum.FAILED.getValue());
+        }
+        // 题目提交数 + 1
+        question.setSubmitNum(ObjectUtil.defaultIfNull(question.getSubmitNum(), 0) + 1);
+        questionService.updateById(question);
         questionSubmitUpdate.setStatus(QuestionSubmitStatusEnum.SUCCEED.getValue());
         questionSubmitUpdate.setJudgeInfo(JSONUtil.toJsonStr(judgeInfo));
         questionSubmitMapper.updateById(questionSubmitUpdate);
