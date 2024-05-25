@@ -1,5 +1,7 @@
 package com.cq.cqoj.service.impl;
 
+import cn.hutool.core.util.ObjectUtil;
+import cn.hutool.json.JSONUtil;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -8,6 +10,7 @@ import com.cq.cqoj.constants.CommonConstant;
 import com.cq.cqoj.exception.BusinessException;
 import com.cq.cqoj.judge.JudgeService;
 import com.cq.cqoj.mapper.QuestionSubmitMapper;
+import com.cq.cqoj.model.dto.questionsubmit.JudgeInfo;
 import com.cq.cqoj.model.dto.questionsubmit.QuestionSubmitAddRequest;
 import com.cq.cqoj.model.dto.questionsubmit.QuestionSubmitQueryRequest;
 import com.cq.cqoj.model.entity.Question;
@@ -15,7 +18,9 @@ import com.cq.cqoj.model.entity.QuestionSubmit;
 import com.cq.cqoj.model.entity.User;
 import com.cq.cqoj.model.enums.QuestionSubmitLanguageEnum;
 import com.cq.cqoj.model.enums.QuestionSubmitStatusEnum;
+import com.cq.cqoj.model.enums.UserRoleEnum;
 import com.cq.cqoj.model.vo.QuestionSubmitVO;
+import com.cq.cqoj.model.vo.QuestionSubmitViewVO;
 import com.cq.cqoj.service.QuestionService;
 import com.cq.cqoj.service.QuestionSubmitService;
 import com.cq.cqoj.service.UserService;
@@ -151,6 +156,29 @@ public class QuestionSubmitServiceImpl extends ServiceImpl<QuestionSubmitMapper,
                 .collect(Collectors.toList());
         questionSubmitVoPage.setRecords(questionSubmitVOList);
         return questionSubmitVoPage;
+    }
+
+    @Override
+    public Page<QuestionSubmitViewVO> listQuestionSubmitByPage(String title, String language, long pageIndex, long size, User loginUser) {
+        Page<QuestionSubmitViewVO> page = new Page<>(pageIndex, size);
+        long total = this.baseMapper.countQuestionSubmit(title, language);
+        page.setTotal(total);
+        if (size > 0) {
+            page.setPages(total / size);
+        }
+        List<QuestionSubmitViewVO> records;
+        if (UserRoleEnum.ADMIN.equals(loginUser.getUserRole())) {
+            records = this.baseMapper.selectQuestionSubmit(title, language, pageIndex, size);
+        }else {
+            records = this.baseMapper.selectQuestionSubmitByUserId(title, language, pageIndex, size, loginUser.getId());
+        }
+        records.forEach(record -> {
+            JudgeInfo judgeInfo = JSONUtil.toBean(record.getJudgeInfo(), JudgeInfo.class);
+            record.setMessage(judgeInfo.getMessage());
+            record.setTime(ObjectUtil.defaultIfNull(judgeInfo.getTime(), 0) + "ms");
+        });
+        page.setRecords(records);
+        return page;
     }
 
 }

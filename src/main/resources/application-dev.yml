@@ -14,6 +14,7 @@ mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
 
+# 如果有需要上传头像，记得在阿里云对象存储里获取到这些信息
 aliyun:
   oss:
     access-key: XXX
