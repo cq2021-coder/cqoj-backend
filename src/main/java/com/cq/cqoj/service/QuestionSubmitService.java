@@ -8,6 +8,7 @@ import com.cq.cqoj.model.dto.questionsubmit.QuestionSubmitQueryRequest;
 import com.cq.cqoj.model.entity.QuestionSubmit;
 import com.cq.cqoj.model.entity.User;
 import com.cq.cqoj.model.vo.QuestionSubmitVO;
+import com.cq.cqoj.model.vo.QuestionSubmitViewVO;
 
 /**
 * @author 程崎
@@ -49,4 +50,6 @@ public interface QuestionSubmitService extends IService<QuestionSubmit> {
      * @return {@link Page}<{@link QuestionSubmitVO}>
      */
     Page<QuestionSubmitVO> getQuestionSubmitVoPage(Page<QuestionSubmit> questionSubmitPage, User loginUser);
+
+    Page<QuestionSubmitViewVO> listQuestionSubmitByPage(String title, String language, long pageIndex, long size, User loginUser);
 }
